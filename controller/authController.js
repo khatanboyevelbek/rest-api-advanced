@@ -12,8 +12,8 @@ exports.signup = async (req, res, next) => {
             throw new Error('This email is already exist');
         }
         const hashedPassword = await bcrypt.hash(password, 12);
-        await pool.query('INSERT INTO users(email, password, firstname, lastname) VALUES ($1,$2,$3,$4)', [email, hashedPassword,firstname, lastname]);
-        res.status(201).json({message: 'You successfuly signed up'});
+        const user = await pool.query('INSERT INTO users(email, password, firstname, lastname) VALUES ($1,$2,$3,$4) RETURNING *', [email, hashedPassword,firstname, lastname]);
+        res.status(201).json({message: 'You successfuly signed up', user: user});
     } catch(err){
         res.status(409).json({message: err.message});
     }

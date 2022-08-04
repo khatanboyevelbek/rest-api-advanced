@@ -1,4 +1,6 @@
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { json } = require('express');
 const pool = require('../config/db_connection');
 
@@ -28,7 +30,8 @@ exports.login = async (req, res, next) => {
         if(!onMatch){
             throw new Error('Password is incorrect');
         }
-        
+        const token = jwt.sign({email: email}, process.env.JWT_PRIVATE_KEY, {expiresIn: "1h"});
+        res.status(200).json({email: email, token: token});
     } catch(err){
         res.status(401).json({message: err.message});
     }

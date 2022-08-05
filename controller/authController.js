@@ -18,7 +18,6 @@ exports.signup = async (req, res, next) => {
         res.status(409).json({message: err.message});
     }
 }
-
 exports.login = async (req, res, next) => {
     const {email, password} = req.body;
     try{

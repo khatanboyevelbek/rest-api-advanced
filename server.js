@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const multer = require('multer');
 const app = express();
 const server = require('http').Server(app);
 const port = process.env.PORT;
+const multerConfig = require('./config/multerConfig');
 
 const corsConfig = {
     origin: '*',
@@ -14,17 +16,8 @@ const corsConfig = {
     credential: true
 }
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './files');
-    },
-    filename: function(req, file, cb) {
-        cb(null, Date.now() + '_' + file.originalname);
-    }
-});
-
 app.use(express.json());
-app.use(multer({storage: storage}).single('image'));
+app.use(multer({storage: multerConfig.storage, fileFilter: multerConfig.fileFilter}).single('image'));
 app.use(cors(corsConfig));
 
 //Initialize route

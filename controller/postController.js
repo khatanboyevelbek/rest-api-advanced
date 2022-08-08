@@ -60,7 +60,7 @@ exports.updatePost = async (req, res, next) => {
         const {id} = req.params;
         const {title, description} = req.body;
         const image = req.file.path.split('/')[1];
-        const oldPost = await pool.query('SELECT * FROM posts WHERE post_id = $1',[id]);
+        const oldPost = await pool.query('SELECT * FROM posts WHERE post_id = $1 AND creator_id = $2',[id, req.user.user_id]);
         const updatedPost = await pool.query(`
             UPDATE posts SET title = $1, description = $2, creator_id = $3, image = $4
             WHERE post_id = $5 RETURNING *

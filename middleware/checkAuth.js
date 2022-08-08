@@ -1,17 +1,29 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
-exports.checkAuth = (req, res, next) => {
+exports.checkAuth = async (req, res, next) => {
+  try {
     const authHeaders = req.headers.authorization;
-    if(!authHeaders){
-        res.status(401).json({message: 'Authorization token is not found'});
-    }
-    const token = authHeaders.split(' ')[1];
-    jwt.verify(token, process.env.JWT_PRIVATE_KEY, (err, user) => {
-        if(err){
-            res.status(403).json({message: err.message});
+    if (!authHeaders) {
+      const error = new Error("Fobidden error");
+      error.statusCode = 403;
+      throw error;
+    } else {
+      const token = authHeaders.split(" ")[1];
+      jwt.verify(token, process.env.JWT_PRIVATE_KEY, (error, user) => {
+        if (error) {
+          const error = new Error('Forbidden error');
+          error.statusCode = 403;
+          throw error;
         }
         req.user = user;
         next();
-    });
-}
+      });
+    }
+  } catch(error) {
+    if(!error.statusCode){
+        error.statusCode = 500;
+    }
+    next(error);
+  }
+};

@@ -11,27 +11,35 @@ const deleteFile = (p) => {
 
 exports.allPosts = async (req, res, next) => {
     try{
-        const data = await pool.query('SELECT * FROM posts');
-        if(data.rows.length === 0){
-            throw new Error('Posts not found');
+        const data = await pool.query('SELECT * FROM posts WHERE creator_id = $1', [req.user.user_id]);
+        if(data.rows.length == 0){
+            const error = new Error('Posts not found');
+            error.statusCode = 404;
+            throw error;
         }
-        const userPosts = data.rows.filter(post => post.creator_id == req.user.user_id);
-        res.status(200).json(userPosts);
-    } catch(err){
-        res.status(404).json({message: err.message});
+        res.status(200).json(data.rows);
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
     }
 }
 exports.getSinglePost = async (req, res, next) => {
     try {
         const {id} = req.params;
-        const data = await pool.query('SELECT * FROM posts WHERE post_id = $1',[id]);
+        const data = await pool.query('SELECT * FROM posts WHERE post_id = $1 AND creator_id = $2',[id, req.user.user_id]);
         if(data.rows.length === 0){
-            throw new Error('Post not found');
+            const error = new Error('Post not found');
+            error.statusCode = 404;
+            throw error;
         }
-        const userPost = data.rows[0].creator_id == req.user.user_id;
-        res.status(200).json(userPost);
-    } catch(err) {
-        res.status(404).json({message: err.message});
+        res.status(200).json(data.rows);
+    } catch(error) {
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
     }
 }
 exports.createPost = async (req, res, next) => {
@@ -40,8 +48,11 @@ exports.createPost = async (req, res, next) => {
         const image = req.file.path.split('/')[1];
         const data = await pool.query('INSERT INTO posts(title,description,creator_id,image) VALUES ($1,$2,$3,$4) RETURNING *',[title,description,req.user.user_id,image]);
         res.status(201).json({message: 'Post successfuly saved', data: data.rows});
-    } catch(err){
-        res.status(500).json(err.message);
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
     }
 }
 exports.updatePost = async (req, res, next) => {
@@ -64,17 +75,28 @@ exports.updatePost = async (req, res, next) => {
             deleteFile(oldPost.rows[0].image);
         }
         res.status(200).json({message: 'Post successfuly updated', data: updatedPost.rows});
-    } catch(err){
-        res.status(500).json({message: err.message});
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
     }
 }
 exports.deletePost = async (req, res, next) => {
     try {
         const {id}= req.params;
-        const data = await pool.query('DELETE FROM posts WHERE post_id = $1 RETURNING *', [id]);
+        const data = await pool.query('DELETE FROM posts WHERE post_id = $1 AND creator_id = $2 RETURNING *', [id, req.user.user_id]);
+        if(data.rows.length == 0){
+            const error = new Error('Post not found');
+            error.statusCode = 404;
+            throw error;
+        }
         deleteFile(data.rows[0].image)
         res.status(200).json({message: 'Post successfuly deleted'});
-    } catch(err){
-        res.status(500).json({message: err.message});
+    } catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500;
+        }
+        next(error);
     }
 }

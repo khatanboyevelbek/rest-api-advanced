@@ -4,8 +4,8 @@ const pool = require('../config/db_connection');
 
 const deleteFile = (p) => {
    const imagePath = path.join(process.cwd(),'/files',p);
-   fs.unlink(imagePath, (err) => {
-    if(err) throw err;
+   fs.unlink(imagePath, (error) => {
+    if(error) throw error;
    });
 }
 

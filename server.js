@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const helmet = require('helmet');
 const app = express();
 const server = require('http').Server(app);
 const port = process.env.PORT;
@@ -19,6 +20,7 @@ const corsConfig = {
 app.use(express.json());
 app.use(multer({storage: multerConfig.storage, fileFilter: multerConfig.fileFilter}).single('image'));
 app.use(cors(corsConfig));
+app.use(helmet());
 
 //Initialize route
 app.use(require('./routes/index'));

@@ -38,4 +38,4 @@ app.use(require('./routes/index'));
 // })
 server.listen(port, () => {
     console.log('Server is running');
-})
+});
